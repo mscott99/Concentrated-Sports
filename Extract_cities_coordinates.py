@@ -10,28 +10,34 @@ This is a temporary script file.
 import pandas as pd
 from Sport_density import sport_density
 
-sport_ID = '175'
 
-#Extract the list of cities
-list_of_cities_df = pd.read_csv('List_of_cities.csv')
-list_of_cities_df['Number_of_places'] = 0
+class Extractor:
 
-#Helper function to extract density from latitude and longitude
-def extract_number_of_places(sport_ID, lon, lat, density_weighting=False):
-    density_computation = sport_density(lat, lon, [sport_ID])
-    density_computation.number_of_sport_places()
-    return density_computation.number_sport_places[sport_ID]
+    sport_ID = ''
+    list_of_cities_df = pd.read_csv('List_of_cities.csv')
+    list_of_cities_df['Number_of_places'] = 0
 
-#Loop through all cities
-Nb = []
-for i in range(len(list_of_cities_df)):  
-    Nb.append(extract_number_of_places(sport_ID, 
-                 list_of_cities_df['lng'].iloc[i], list_of_cities_df['lat'].iloc[i]))
+    def __init__(self,sport):
+        self.sport_ID = sport
+    #Extract the list of cities
+    #Helper function to extract density from latitude and longitude
+    def extract_number_of_places(self, lon, lat, density_weighting=False):
+        density_computation = sport_density(lat, lon, [self.sport_ID])
+        density_computation.number_of_sport_places()
+        return density_computation.number_sport_places[self.sport_ID]
 
-list_of_cities_df['Number_of_places'] = Nb
+    def get_most_popular_city(self):
+        #Loop through all cities
+        global list_of_cities_df
+        Nb = []
+        for i in range(len(self.list_of_cities_df)):
+            Nb.append(self.extract_number_of_places(
+                         self.list_of_cities_df['lng'].iloc[i], self.list_of_cities_df['lat'].iloc[i]))
 
-list_of_cities_df.sort_values('Number_of_places', axis=0, ascending=False, inplace=True)
+        self.list_of_cities_df['Number_of_places'] = Nb
 
-city_with_most_places_coordinates = {}
-city_with_most_places_coordinates['lat'] = list_of_cities_df['lat'].iloc[0]
-city_with_most_places_coordinates['lon'] = list_of_cities_df['lng'].iloc[0]
+        self.list_of_cities_df.sort_values('Number_of_places', axis=0, ascending=False, inplace=True)
+
+        city_with_most_places_coordinates = {}
+        city_with_most_places_coordinates = self.list_of_cities_df[['lat','lng','city','Number_of_places']].iloc[0].to_dict()
+        return city_with_most_places_coordinates
